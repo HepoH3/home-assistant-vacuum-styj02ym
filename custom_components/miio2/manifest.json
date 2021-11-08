@@ -8,7 +8,7 @@
     "python-miio==0.5.8"
   ],
   "dependencies": [],
-  "codeowners": ["@nqkdev", "@KrzysztofHajdamowicz"],
+  "codeowners": ["@nqkdev", "@KrzysztofHajdamowicz", "@l-j"],
   "config_flow": false,
   "iot_class": "local_polling"
 }
