@@ -41,12 +41,14 @@ _LOGGER = logging.getLogger(__name__)
 
 DEFAULT_NAME = "Xiaomi Vacuum cleaner STYJ02YM"
 DATA_KEY = "vacuum.miio2"
+CONF_CHINA_VERSION = "china_version"
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_HOST): cv.string,
         vol.Required(CONF_TOKEN): vol.All(str, vol.Length(min=32, max=32)),
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
+        vol.Optional(CONF_CHINA_VERSION, default=False): cv.boolean,
     },
     extra=vol.ALLOW_EXTRA,
 )
@@ -152,7 +154,7 @@ STATE_CODE_TO_STATE = {
     7: STATE_CLEANING   # Mop only
 }
 
-ALL_PROPS = [
+VACUUM_PROPS = [
     "run_state",
     "mode",
     "err_state",
@@ -179,6 +181,18 @@ ALL_PROPS = [
     "is_work"
 ]
 
+CHINA_VERSION_VACUUM_EXTRA_PROPS = [
+    "side_brush_life",
+    "side_brush_hours",
+    "main_brush_life",
+    "main_brush_hours",
+    "hypa_life",
+    "hypa_hours",
+    "mop_life",
+    "mop_hours",
+    "water_percent",
+]
+
 VACUUM_CARD_PROPS_REFERENCES = {
     'cleaned_area': 's_area',
     'cleaning_time': 's_time'
@@ -192,12 +206,16 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     host = config[CONF_HOST]
     token = config[CONF_TOKEN]
     name = config[CONF_NAME]
+    china_version = config[CONF_CHINA_VERSION]
 
     # Create handler
     _LOGGER.info("Initializing with host %s (token %s...)", host, token[:5])
     vacuum = Vacuum(host, token)
 
-    mirobo = MiroboVacuum2(name, vacuum)
+    # Add extra props when vacuum is with china software
+    vacuum_props = VACUUM_PROPS if not china_version else VACUUM_PROPS + CHINA_VERSION_VACUUM_EXTRA_PROPS
+
+    mirobo = MiroboVacuum2(name, vacuum, vacuum_props)
     hass.data[DATA_KEY][host] = mirobo
 
     async_add_entities([mirobo], update_before_add=True)
@@ -241,10 +259,11 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 class MiroboVacuum2(StateVacuumEntity):
     """Representation of a Xiaomi Vacuum cleaner robot."""
 
-    def __init__(self, name, vacuum):
+    def __init__(self, name, vacuum, vacuum_props):
         """Initialize the Xiaomi vacuum cleaner robot handler."""
         self._name = name
         self._vacuum = vacuum
+        self._vacuum_props = vacuum_props
 
         self._last_clean_point = None
 
@@ -436,9 +455,9 @@ class MiroboVacuum2(StateVacuumEntity):
     def update(self):
         """Fetch state from the device."""
         try:
-            state = self._vacuum.raw_command('get_prop', ALL_PROPS)
+            state = self._vacuum.raw_command('get_prop', self._vacuum_props)
 
-            self.vacuum_state = dict(zip(ALL_PROPS, state))
+            self.vacuum_state = dict(zip(self._vacuum_props, state))
 
             for prop in VACUUM_CARD_PROPS_REFERENCES.keys():
                 self.vacuum_state[prop] = self.vacuum_state[VACUUM_CARD_PROPS_REFERENCES[prop]]
