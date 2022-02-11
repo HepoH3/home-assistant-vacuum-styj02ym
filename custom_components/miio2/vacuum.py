@@ -3,7 +3,7 @@ import asyncio
 from functools import partial
 import logging
 
-from miio import DeviceException, Vacuum  # pylint: disable=import-error
+from miio import DeviceException, Vacuum, ViomiVacuum  # pylint: disable=import-error
 import voluptuous as vol
 
 from homeassistant.components.vacuum import (
@@ -263,6 +263,7 @@ class MiroboVacuum2(StateVacuumEntity):
         """Initialize the Xiaomi vacuum cleaner robot handler."""
         self._name = name
         self._vacuum = vacuum
+        self._vacuum._supported_models = ViomiVacuum._supported_models
         self._vacuum_props = vacuum_props
 
         self._last_clean_point = None
