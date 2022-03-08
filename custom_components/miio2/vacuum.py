@@ -3,7 +3,7 @@ import asyncio
 from functools import partial
 import logging
 
-from miio import DeviceException, Vacuum, ViomiVacuum  # pylint: disable=import-error
+from miio import DeviceException, ViomiVacuum  # pylint: disable=import-error
 import voluptuous as vol
 
 from homeassistant.components.vacuum import (
@@ -210,7 +210,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 
     # Create handler
     _LOGGER.info("Initializing with host %s (token %s...)", host, token[:5])
-    vacuum = Vacuum(host, token)
+    vacuum = ViomiVacuum(host, token)
 
     # Add extra props when vacuum is with china software
     vacuum_props = VACUUM_PROPS if not china_version else VACUUM_PROPS + CHINA_VERSION_VACUUM_EXTRA_PROPS
