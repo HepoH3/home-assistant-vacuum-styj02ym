@@ -1,6 +1,6 @@
 {
     "name": "vacuum-styj02ym",
-    "country": ["FR", "PL"],
+    "country": ["FR", "PL", "RU"],
     "domains": ["vacuum"],
     "homeassistant": "2021.6.0",
     "iot_class": "local_poll",
